@@ -3,66 +3,70 @@ const readline = require('readline');
 const superagent = require('superagent');
 const fs = require('fs');
 
-var rl1 = readline.createInterface({
-    input: fs.createReadStream('snapshot.csv')
-});
-var valid = 0;
-var invalid = 0;
-var promises = [];
-rl1.on('line', (line) => {
-    var arr = line.toString().split(",");
-    let account = arr[1].replace(/\"/g, "");
-    let snapshotPublicKey = arr[2].replace(/\"/g, "");
-    let snapshotBalance = arr[3].replace(/\"/g, "");
-    promises.push(
-        validate(account, snapshotBalance, snapshotPublicKey)
-            .then((res) => {
-                console.log(account, res);
-                //valid += 1;
-                return;
-            }).catch((err) => {
-                console.error(account, err);
-                //invalid += 1;
-                return;
-            })
-    )
-});
-
-var ipfs = ipfsAPI('localhost', '5001', { protocol: 'http' }) // leaving out the arguments will default to these values
-
+const httpEndPoint = "127.0.0.1:10999";
+const fileLocation = "snapshot.csv";
 const validCID = 'QmYr3VPdxARc5RVSrQjYpzCMsBjKVkBrFNGjdATsQisyb6'
 
-const httpEndPoint = "127.0.0.1:10999";
+if (fileLocation != "") {
+    var rl1 = readline.createInterface({
+        input: fs.createReadStream(fileLocation)
+    });
+    var valid = 0;
+    var invalid = 0;
+    var promises = [];
+    rl1.on('line', (line) => {
+        var arr = line.toString().split(",");
+        let account = arr[1].replace(/\"/g, "");
+        let snapshotPublicKey = arr[2].replace(/\"/g, "");
+        let snapshotBalance = arr[3].replace(/\"/g, "");
+        promises.push(
+            validate(account, snapshotBalance, snapshotPublicKey)
+                .then((res) => {
+                    console.log(account, res);
+                    //valid += 1;
+                    return;
+                }).catch((err) => {
+                    console.error(account, err);
+                    //invalid += 1;
+                    return;
+                })
+        )
+    });
+}
 
-const stream = ipfs.files.getReadableStream(validCID)
+if (validCID != "") {
+    var ipfs = ipfsAPI('localhost', '5001', { protocol: 'http' }) // leaving out the arguments will default to these values
+    const stream = ipfs.files.getReadableStream(validCID)
 
-stream.on('data', (file) => {
-    // write the file's path and contents to standard out
-    console.log(file.path)
-    if (file.type !== 'dir') {
-        const rl = readline.createInterface({
-            input: file.content
-        });
-        rl.on('line', (line) => {
-            var arr = line.toString().split(",");
-            let account = arr[1].replace(/\"/g, "");
-            let snapshotPublicKey = arr[2].replace(/\"/g, "");
-            let snapshotBalance = arr[3].replace(/\"/g, "");
-            promises.push(
-                validate(account, snapshotBalance, snapshotPublicKey)
-                    .then((res) => {
-                        console.log(account, res);
-                        //valid += 1;
-                        return;
-                    }).catch((err) => {
-                        console.error(account, err);
-                        //invalid += 1;
-                        return;
-                    })
-            )
-        })
-    }
-});
+    stream.on('data', (file) => {
+        // write the file's path and contents to standard out
+        console.log(file.path)
+        if (file.type !== 'dir') {
+            const rl = readline.createInterface({
+                input: file.content
+            });
+            rl.on('line', (line) => {
+                var arr = line.toString().split(",");
+                let account = arr[1].replace(/\"/g, "");
+                let snapshotPublicKey = arr[2].replace(/\"/g, "");
+                let snapshotBalance = arr[3].replace(/\"/g, "");
+                promises.push(
+                    validate(account, snapshotBalance, snapshotPublicKey)
+                        .then((res) => {
+                            console.log(account, res);
+                            //valid += 1;
+                            return;
+                        }).catch((err) => {
+                            console.error(account, err);
+                            //invalid += 1;
+                            return;
+                        })
+                )
+            })
+        }
+    });
+
+}
 
 
 function validate(account, snapshotBalance, snapshotPublicKey) {
@@ -84,8 +88,11 @@ function validate(account, snapshotBalance, snapshotPublicKey) {
                     return;
                 } else {
                     //console.log(res.text);
-                    let balance = JSON.parse(res.text)[0];
-                    balance = 1 * balance.toString().split(" ")[0];
+                    let balance = 0;
+                    let balanceArr = JSON.parse(res.text);
+                    if (balanceArr != []) {
+                        balance = 1 * balanceArr[0].toString().split(" ")[0];
+                    }
                     superagent(httpEndPoint + "/v1/chain/get_account")
                         .set('Content-Type', 'application/json')
                         .send({
