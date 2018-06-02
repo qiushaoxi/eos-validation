@@ -111,10 +111,10 @@ function validate(account, snapshotBalance, snapshotPublicKey) {
                                     //console.error("ram error");
                                     reject("ram error,ram:" + ram_bytes);
                                 }
-                                let total = balance + stake_cpu + stake_net;
+                                let total = (balance + stake_cpu + stake_net).toFixed(4);
                                 if (total != snapshotBalance) {
                                     //console.error("balance error");
-                                    reject("balance error,snapshot:" + snapshotBalance + ",balance:" + balance + ",stake_cpu:" + stake_cpu + ",stake_net:" + stake_net);
+                                    reject("balance error,snapshot:" + snapshotBalance + " , total:" + total + ",balance:" + balance + ",stake_cpu:" + stake_cpu + ",stake_net:" + stake_net);
                                 }
                                 resolve(":ok.");
                             }
