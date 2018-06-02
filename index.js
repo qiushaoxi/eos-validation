@@ -5,7 +5,7 @@ const fs = require('fs');
 
 const interval = 10;
 const waitTime = 3000;
-const httpEndPoint = "127.0.0.1:10999";
+const httpEndPoint = "127.0.0.1:10051";
 const fileLocation = "snapshot.csv";
 const validCID = ''
 
@@ -33,12 +33,10 @@ if (validCID != "") {
 
 }
 
-function retry(rl, account, snapshotBalance, snapshotPublicKey) {
-    rl.pause();
+function retry(account, snapshotBalance, snapshotPublicKey) {
     setTimeout(() => {
-        rl.resume();
+        validate(account, snapshotBalance, snapshotPublicKey)
     }, waitTime);
-    validate(account, snapshotBalance, snapshotPublicKey)
 
 }
 
@@ -49,14 +47,14 @@ function cycle(rl) {
         let account = arr[1].replace(/\"/g, "");
         let snapshotPublicKey = arr[2].replace(/\"/g, "");
         let snapshotBalance = arr[3].replace(/\"/g, "");
-        validate(rl, account, snapshotBalance, snapshotPublicKey)
+        validate(account, snapshotBalance, snapshotPublicKey)
             .then((res) => {
                 console.log(account, res);
-                //valid += 1;
+                fs.writeFileSync("good", account + ":" + res);
                 return;
             }).catch((err) => {
                 console.error(account, err);
-                //invalid += 1;
+                fs.writeFileSync("bad", account + ":" + err);
                 return;
             })
         count += 1;
@@ -70,7 +68,7 @@ function cycle(rl) {
     });
 }
 
-function validate(rl, account, snapshotBalance, snapshotPublicKey) {
+function validate(account, snapshotBalance, snapshotPublicKey) {
     //let vaild = true;
     snapshotBalance = snapshotBalance.toString().split(" ")[0];
     return new Promise((resolve, reject) => {
@@ -84,10 +82,10 @@ function validate(rl, account, snapshotBalance, snapshotPublicKey) {
             .end(function (err, res) {
                 if (err) {
                     console.error("http error :" + err);
-                    retry(rl, account, snapshotBalance, snapshotPublicKey);
+                    retry(account, snapshotBalance, snapshotPublicKey);
                 } else if (res.statusCode != 200) {
                     console.error("status code :" + res.statusCode);
-                    retry(rl, account, snapshotBalance, snapshotPublicKey);
+                    retry(account, snapshotBalance, snapshotPublicKey);
                 } else {
                     //console.log(res.text);
                     let balance = 0;
@@ -103,10 +101,10 @@ function validate(rl, account, snapshotBalance, snapshotPublicKey) {
                         .end(function (err, res) {
                             if (err) {
                                 console.error("http error :" + err);
-                                retry(rl, account, snapshotBalance, snapshotPublicKey);
+                                retry(account, snapshotBalance, snapshotPublicKey);
                             } else if (res.statusCode != 200) {
                                 console.error("status code :" + res.statusCode);
-                                retry(rl, account, snapshotBalance, snapshotPublicKey);
+                                retry(account, snapshotBalance, snapshotPublicKey);
                             } else {
                                 let object = JSON.parse(res.text);
                                 let stake_cpu = 1 * object.total_resources.cpu_weight.toString().split(" ")[0];;
