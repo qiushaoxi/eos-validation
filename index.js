@@ -9,8 +9,13 @@ const httpEndPoint = "127.0.0.1:10051";
 const fileLocation = "snapshot.csv";
 const validCID = ''
 
-fs.unlinkSync("good");
-fs.unlinkSync("bad");
+if(fs.existsSync("good")){
+    fs.unlinkSync("good");
+}
+
+if(fs.existsSync("bad")){
+    fs.unlinkSync("bad");
+}
 
 if (fileLocation != "") {
     let rl = readline.createInterface({
