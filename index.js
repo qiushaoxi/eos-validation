@@ -9,6 +9,9 @@ const httpEndPoint = "127.0.0.1:10051";
 const fileLocation = "snapshot.csv";
 const validCID = ''
 
+fs.unlinkSync("good");
+fs.unlinkSync("bad");
+
 if (fileLocation != "") {
     let rl = readline.createInterface({
         input: fs.createReadStream(fileLocation)
@@ -50,11 +53,11 @@ function cycle(rl) {
         validate(account, snapshotBalance, snapshotPublicKey)
             .then((res) => {
                 console.log(account, res);
-                fs.writeFileSync("good", account + ":" + res);
+                fs.appendFile("good", account + ":" + res + "\n");
                 return;
             }).catch((err) => {
                 console.error(account, err);
-                fs.writeFileSync("bad", account + ":" + err);
+                fs.appendFile("bad", account + ":" + err + "\n");
                 return;
             })
         count += 1;
