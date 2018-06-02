@@ -5,15 +5,15 @@ const fs = require('fs');
 
 const interval = 10;
 const waitTime = 3000;
-const httpEndPoint = "127.0.0.1:10051";
+const httpEndPoint = "127.0.0.1:10999";
 const fileLocation = "snapshot.csv";
 const validCID = ''
 
-if(fs.existsSync("good")){
+if (fs.existsSync("good")) {
     fs.unlinkSync("good");
 }
 
-if(fs.existsSync("bad")){
+if (fs.existsSync("bad")) {
     fs.unlinkSync("bad");
 }
 
@@ -48,31 +48,39 @@ function retry(account, snapshotBalance, snapshotPublicKey) {
 
 }
 
-function cycle(rl) {
+async function cycle(rl) {
     var count = 0;
-    rl.on('line', (line) => {
+    rl.on('line', async (line) => {
         let arr = line.toString().split(",");
         let account = arr[1].replace(/\"/g, "");
         let snapshotPublicKey = arr[2].replace(/\"/g, "");
         let snapshotBalance = arr[3].replace(/\"/g, "");
-        validate(account, snapshotBalance, snapshotPublicKey)
-            .then((res) => {
-                console.log(account, res);
-                fs.appendFile("good", account + ":" + res + "\n");
-                return;
-            }).catch((err) => {
-                console.error(account, err);
-                fs.appendFile("bad", account + ":" + err + "\n");
-                return;
-            })
-        count += 1;
-        if (count == interval) {
-            rl.pause();
-            count = 0;
-            setTimeout(() => {
-                rl.resume();
-            }, waitTime);
+        try {
+            let res = await validate(account, snapshotBalance, snapshotPublicKey)
+            console.log(account, res);
+            fs.appendFile("good", account + ":" + res + "\n");
+        } catch (err) {
+            console.error(account, err);
+            fs.appendFile("bad", account + ":" + err + "\n");
         }
+        /*         let res =await validate(account, snapshotBalance, snapshotPublicKey)
+                    .then((res) => {
+                        console.log(account, res);
+                        fs.appendFile("good", account + ":" + res + "\n");
+                        return;
+                    }).catch((err) => {
+                        console.error(account, err);
+                        fs.appendFile("bad", account + ":" + err + "\n");
+                        return;
+                    }) */
+        /*         count += 1;
+                if (count == interval) {
+                    rl.pause();
+                    count = 0;
+                    setTimeout(() => {
+                        rl.resume();
+                    }, waitTime);
+                } */
     });
 }
 
