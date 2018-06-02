@@ -48,39 +48,35 @@ function retry(account, snapshotBalance, snapshotPublicKey) {
 
 }
 
-async function cycle(rl) {
+function cycle(rl) {
     var count = 0;
-    rl.on('line', async (line) => {
+    var promises = [];
+    rl.on('line', (line) => {
         let arr = line.toString().split(",");
         let account = arr[1].replace(/\"/g, "");
         let snapshotPublicKey = arr[2].replace(/\"/g, "");
         let snapshotBalance = arr[3].replace(/\"/g, "");
-        try {
-            let res = await validate(account, snapshotBalance, snapshotPublicKey)
-            console.log(account, res);
-            fs.appendFile("good", account + ":" + res + "\n");
-        } catch (err) {
-            console.error(account, err);
-            fs.appendFile("bad", account + ":" + err + "\n");
+        let promise = validate(account, snapshotBalance, snapshotPublicKey)
+            .then((res) => {
+                console.log(account, res);
+                fs.appendFile("good", account + ":" + res + "\n");
+                return;
+            }).catch((err) => {
+                console.error(account, err);
+                fs.appendFile("bad", account + ":" + err + "\n");
+                return;
+            })
+        promises.push(promise);
+        count += 1;
+        if (count == interval) {
+            rl.pause();
+            count = 0;
+            Promise.all(promises)
+            .then(()=>{
+                promises = [];
+                rl.resume();
+            });
         }
-        /*         let res =await validate(account, snapshotBalance, snapshotPublicKey)
-                    .then((res) => {
-                        console.log(account, res);
-                        fs.appendFile("good", account + ":" + res + "\n");
-                        return;
-                    }).catch((err) => {
-                        console.error(account, err);
-                        fs.appendFile("bad", account + ":" + err + "\n");
-                        return;
-                    }) */
-        /*         count += 1;
-                if (count == interval) {
-                    rl.pause();
-                    count = 0;
-                    setTimeout(() => {
-                        rl.resume();
-                    }, waitTime);
-                } */
     });
 }
 
