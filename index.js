@@ -4,7 +4,7 @@ const superagent = require('superagent');
 const fs = require('fs');
 
 const interval = 10;
-const waitTime = 500;
+const waitTime = 3000;
 const httpEndPoint = "127.0.0.1:10999";
 const fileLocation = "snapshot.csv";
 const validCID = ''
@@ -75,9 +75,10 @@ function validate(account, snapshotBalance, snapshotPublicKey) {
             .end(function (err, res) {
                 if (err) {
                     console.error("http error :" + err);
+                    validate(account, snapshotBalance, snapshotPublicKey)
                 } else if (res.statusCode != 200) {
                     console.error("status code :" + res.statusCode);
-                    return;
+                    validate(account, snapshotBalance, snapshotPublicKey)
                 } else {
                     //console.log(res.text);
                     let balance = 0;
@@ -93,9 +94,10 @@ function validate(account, snapshotBalance, snapshotPublicKey) {
                         .end(function (err, res) {
                             if (err) {
                                 console.error("http error :" + err);
+                                validate(account, snapshotBalance, snapshotPublicKey)
                             } else if (res.statusCode != 200) {
                                 console.error("status code :" + res.statusCode);
-                                return;
+                                validate(account, snapshotBalance, snapshotPublicKey)
                             } else {
                                 let object = JSON.parse(res.text);
                                 let stake_cpu = 1 * object.total_resources.cpu_weight.toString().split(" ")[0];;
