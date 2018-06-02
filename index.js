@@ -3,6 +3,8 @@ const readline = require('readline');
 const superagent = require('superagent');
 const fs = require('fs');
 
+const interval = 10;
+const waitTime = 500;
 const httpEndPoint = "127.0.0.1:10999";
 const fileLocation = "snapshot.csv";
 const validCID = ''
@@ -32,6 +34,7 @@ if (validCID != "") {
 }
 
 function cycle(rl) {
+    var count = 0;
     rl.on('line', (line) => {
         let arr = line.toString().split(",");
         let account = arr[1].replace(/\"/g, "");
@@ -47,8 +50,17 @@ function cycle(rl) {
                 //invalid += 1;
                 return;
             })
+        count += 1;
+        if (count == interval) {
+            rl.pause();
+            count = 0;
+            setTimeout(() => {
+                rl.resume();
+            }, waitTime);
+        }
     });
 }
+
 function validate(account, snapshotBalance, snapshotPublicKey) {
     //let vaild = true;
     snapshotBalance = snapshotBalance.toString().split(" ")[0];
