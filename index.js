@@ -5,33 +5,13 @@ const fs = require('fs');
 
 const httpEndPoint = "127.0.0.1:10999";
 const fileLocation = "snapshot.csv";
-const validCID = 'QmYr3VPdxARc5RVSrQjYpzCMsBjKVkBrFNGjdATsQisyb6'
+const validCID = ''
 
 if (fileLocation != "") {
-    var rl1 = readline.createInterface({
+    let rl = readline.createInterface({
         input: fs.createReadStream(fileLocation)
     });
-    var valid = 0;
-    var invalid = 0;
-    var promises = [];
-    rl1.on('line', (line) => {
-        var arr = line.toString().split(",");
-        let account = arr[1].replace(/\"/g, "");
-        let snapshotPublicKey = arr[2].replace(/\"/g, "");
-        let snapshotBalance = arr[3].replace(/\"/g, "");
-        promises.push(
-            validate(account, snapshotBalance, snapshotPublicKey)
-                .then((res) => {
-                    console.log(account, res);
-                    //valid += 1;
-                    return;
-                }).catch((err) => {
-                    console.error(account, err);
-                    //invalid += 1;
-                    return;
-                })
-        )
-    });
+    cycle(rl)
 }
 
 if (validCID != "") {
@@ -42,33 +22,33 @@ if (validCID != "") {
         // write the file's path and contents to standard out
         console.log(file.path)
         if (file.type !== 'dir') {
-            const rl = readline.createInterface({
+            let rl = readline.createInterface({
                 input: file.content
             });
-            rl.on('line', (line) => {
-                var arr = line.toString().split(",");
-                let account = arr[1].replace(/\"/g, "");
-                let snapshotPublicKey = arr[2].replace(/\"/g, "");
-                let snapshotBalance = arr[3].replace(/\"/g, "");
-                promises.push(
-                    validate(account, snapshotBalance, snapshotPublicKey)
-                        .then((res) => {
-                            console.log(account, res);
-                            //valid += 1;
-                            return;
-                        }).catch((err) => {
-                            console.error(account, err);
-                            //invalid += 1;
-                            return;
-                        })
-                )
-            })
+            cycle(rl)
         }
     });
 
 }
 
-
+function cycle(rl) {
+    rl.on('line', (line) => {
+        let arr = line.toString().split(",");
+        let account = arr[1].replace(/\"/g, "");
+        let snapshotPublicKey = arr[2].replace(/\"/g, "");
+        let snapshotBalance = arr[3].replace(/\"/g, "");
+        validate(account, snapshotBalance, snapshotPublicKey)
+            .then((res) => {
+                console.log(account, res);
+                //valid += 1;
+                return;
+            }).catch((err) => {
+                console.error(account, err);
+                //invalid += 1;
+                return;
+            })
+    });
+}
 function validate(account, snapshotBalance, snapshotPublicKey) {
     //let vaild = true;
     snapshotBalance = snapshotBalance.toString().split(" ")[0];
@@ -90,7 +70,7 @@ function validate(account, snapshotBalance, snapshotPublicKey) {
                     //console.log(res.text);
                     let balance = 0;
                     let balanceArr = JSON.parse(res.text);
-                    if (balanceArr != []) {
+                    if (balanceArr.length != 0) {
                         balance = 1 * balanceArr[0].toString().split(" ")[0];
                     }
                     superagent(httpEndPoint + "/v1/chain/get_account")
