@@ -33,6 +33,15 @@ if (validCID != "") {
 
 }
 
+function retry(rl, account, snapshotBalance, snapshotPublicKey) {
+    rl.pause();
+    setTimeout(() => {
+        rl.resume();
+    }, waitTime);
+    validate(account, snapshotBalance, snapshotPublicKey)
+
+}
+
 function cycle(rl) {
     var count = 0;
     rl.on('line', (line) => {
@@ -40,7 +49,7 @@ function cycle(rl) {
         let account = arr[1].replace(/\"/g, "");
         let snapshotPublicKey = arr[2].replace(/\"/g, "");
         let snapshotBalance = arr[3].replace(/\"/g, "");
-        validate(account, snapshotBalance, snapshotPublicKey)
+        validate(rl, account, snapshotBalance, snapshotPublicKey)
             .then((res) => {
                 console.log(account, res);
                 //valid += 1;
@@ -61,7 +70,7 @@ function cycle(rl) {
     });
 }
 
-function validate(account, snapshotBalance, snapshotPublicKey) {
+function validate(rl, account, snapshotBalance, snapshotPublicKey) {
     //let vaild = true;
     snapshotBalance = snapshotBalance.toString().split(" ")[0];
     return new Promise((resolve, reject) => {
@@ -75,10 +84,10 @@ function validate(account, snapshotBalance, snapshotPublicKey) {
             .end(function (err, res) {
                 if (err) {
                     console.error("http error :" + err);
-                    validate(account, snapshotBalance, snapshotPublicKey)
+                    retry(rl, account, snapshotBalance, snapshotPublicKey);
                 } else if (res.statusCode != 200) {
                     console.error("status code :" + res.statusCode);
-                    validate(account, snapshotBalance, snapshotPublicKey)
+                    retry(rl, account, snapshotBalance, snapshotPublicKey);
                 } else {
                     //console.log(res.text);
                     let balance = 0;
@@ -94,10 +103,10 @@ function validate(account, snapshotBalance, snapshotPublicKey) {
                         .end(function (err, res) {
                             if (err) {
                                 console.error("http error :" + err);
-                                validate(account, snapshotBalance, snapshotPublicKey)
+                                retry(rl, account, snapshotBalance, snapshotPublicKey);
                             } else if (res.statusCode != 200) {
                                 console.error("status code :" + res.statusCode);
-                                validate(account, snapshotBalance, snapshotPublicKey)
+                                retry(rl, account, snapshotBalance, snapshotPublicKey);
                             } else {
                                 let object = JSON.parse(res.text);
                                 let stake_cpu = 1 * object.total_resources.cpu_weight.toString().split(" ")[0];;
