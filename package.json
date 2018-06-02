@@ -1,0 +1,16 @@
+{
+  "name": "eos-validation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "joshua",
+  "license": "MIT",
+  "dependencies": {
+    "ipfs-api": "^22.0.1",
+    "readline": "^1.3.0",
+    "superagent": "^3.8.3"
+  }
+}
