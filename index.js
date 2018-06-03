@@ -122,7 +122,7 @@ function validate(account, snapshotBalance, snapshotPublicKey, callback) {
                 if (balanceArr.length != 0) {
                     balance = 1 * balanceArr[0].toString().split(" ")[0];
                 }
-                superagent(httpEndPoint + "/v1/chain/get_account")
+                superagent(httpEndPoint + ":" + port + "/v1/chain/get_account")
                     .set('Content-Type', 'application/json')
                     .send({
                         "account_name": account,
