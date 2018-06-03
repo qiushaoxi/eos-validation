@@ -50,32 +50,28 @@ function retry(account, snapshotBalance, snapshotPublicKey) {
 
 function cycle(rl) {
     var count = 0;
-    var promises = [];
     rl.on('line', (line) => {
         let arr = line.toString().split(",");
         let account = arr[1].replace(/\"/g, "");
         let snapshotPublicKey = arr[2].replace(/\"/g, "");
         let snapshotBalance = arr[3].replace(/\"/g, "");
-        let promise = validate(account, snapshotBalance, snapshotPublicKey)
+        validate(account, snapshotBalance, snapshotPublicKey)
             .then((res) => {
                 console.log(account, res);
-                fs.appendFile("good", account + ":" + res + "\n");
+                fs.appendFile("good", account + ":" + res + "\n", () => { });
                 return;
             }).catch((err) => {
                 console.error(account, err);
-                fs.appendFile("bad", account + ":" + err + "\n");
+                fs.appendFile("bad", account + ":" + err + "\n", () => { });
                 return;
             })
-        promises.push(promise);
         count += 1;
         if (count == interval) {
             rl.pause();
             count = 0;
-            Promise.all(promises)
-            .then(()=>{
-                promises = [];
+            setTimeout(() => {
                 rl.resume();
-            });
+            }, waitTime);
         }
     });
 }
