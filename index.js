@@ -138,30 +138,30 @@ function validate(account, snapshotBalance, snapshotPublicKey, callback) {
                             let ram_bytes = object.total_resources.ram_bytes;
                             let owner_key = object.permissions[0].required_auth.keys[0].key;
                             let active_key = object.permissions[1].required_auth.keys[0].key;
-                            if (owner_key != snapshotPublicKey || active_key != snapshotPublicKey) {
+                            let total = (balance + stake_cpu + stake_net).toFixed(4);
 
+                            if (owner_key != snapshotPublicKey || active_key != snapshotPublicKey) {
                                 let msg = "snapshotPublicKey error,snapshot:" + snapshotPublicKey + ",owner:" + owner_key + ",active:" + active_key;
                                 console.error(msg);
                                 msg += '\n';
-                                fs.appendFile("bad", msg, callback);
-                            }
-                            if (ram_bytes > 8192) {
+                                fs.appendFile("bad", msg, () => { });
+                            } else if (ram_bytes > 8192) {
                                 let msg = "ram error,ram:" + ram_bytes;
                                 console.error(msg);
                                 msg += '\n';
-                                fs.appendFile("bad", msg, callback);
-                            }
-                            let total = (balance + stake_cpu + stake_net).toFixed(4);
-                            if (total != snapshotBalance) {
+                                fs.appendFile("bad", msg, () => { });
+                            } else if (total != snapshotBalance) {
                                 let msg = "balance error,snapshot:" + snapshotBalance + " , total:" + total + ",balance:" + balance + ",stake_cpu:" + stake_cpu + ",stake_net:" + stake_net;
                                 console.error(msg);
                                 msg += '\n';
-                                fs.appendFile("bad", msg, callback);
+                                fs.appendFile("bad", msg, () => { });
+                            } else {
+                                let msg = account + ":ok.";
+                                console.log(msg);
+                                msg += '\n';
+                                fs.appendFile("good", msg, () => { });
                             }
-                            let msg = account + ":ok.";
-                            console.log(msg);
-                            msg += '\n';
-                            fs.appendFile("good", msg, callback);
+                            callback(null, null);
                         }
                     }
                     )
