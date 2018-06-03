@@ -158,7 +158,12 @@ function validate(account, snapshotBalance, snapshotPublicKey, callback) {
                                 console.error(msg);
                                 msg += '\n';
                                 fs.appendFile("bad", msg, () => { });
-                            } else {
+                            } else if (balance > 10){
+                                let msg = "balance error, > 10 EOS";
+                                console.error(msg);
+                                msg += '\n';
+                                fs.appendFile("bad", msg, () => { });
+                            }else {
                                 let msg = account + ":ok.";
                                 console.log(msg);
                                 msg += '\n';
