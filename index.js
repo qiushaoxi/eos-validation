@@ -4,7 +4,8 @@ const fs = require('fs');
 const async = require('async');
 const config = require('./config.json');
 
-const httpEndPoint = config.httpEndPoint;
+const httpEndPoints = config.httpEndPoints;
+const port = config.port;
 const fileLocation = config.fileLocation;
 const connection = config.connection;
 
@@ -98,7 +99,9 @@ function validate(list){
 function validate(account, snapshotBalance, snapshotPublicKey, callback) {
     //let vaild = true;
     snapshotBalance = snapshotBalance.toString().split(" ")[0];
-    superagent(httpEndPoint + "/v1/chain/get_currency_balance")
+    let random = Math.floor(Math.random() * 4);
+    let httpEndPoint = httpEndPoints[random];
+    superagent(httpEndPoint + ":" + port + "/v1/chain/get_currency_balance")
         .set('Content-Type', 'application/json')
         .send({
             "code": "eosio.token",
