@@ -24,12 +24,6 @@ if (fileLocation != "") {
     cycle(rl)
 }
 
-/* function retry(account, snapshotBalance, snapshotPublicKey) {
-    setTimeout(() => {
-        validate(account, snapshotBalance, snapshotPublicKey)
-    }, waitTime);
-
-} */
 
 function cycle(rl) {
     var count = 0;
@@ -54,52 +48,17 @@ function cycle(rl) {
         });
     });
 }
-/* validate(account, snapshotBalance, snapshotPublicKey)
-    .then((res) => {
-        console.log(account, res);
-        fs.appendFile("good", account + ":" + res + "\n", () => { });
-        return;
-    }).catch((err) => {
-        console.error(account, err);
-        fs.appendFile("bad", account + ":" + err + "\n", () => { });
-        return;
-    })
-count += 1;
-if (count == interval) {
-    rl.pause();
-    count = 0;
-    setTimeout(() => {
-        rl.resume();
-    }, waitTime);
-} */
 
-/* 
-function validate(list){
-    async.mapLimit(list,3,function(object,callback){
-        superagent.get(url)
-            .end(function(err,mes){
-                if(err){
-                    console.error(err);
-                    console.log('message info ' + JSON.stringify(mes));
-                }
-                console.log('「fetch」' + url + ' successful！');
-                var $ = cheerio.load(mes.text);
-                var jsonData = {
-                    title:$('.post-card-title').text().trim(),
-                    href: url,
-                };
-                callback(null,jsonData);
-            },function(error,results){
-                console.log('results ');
-                console.log(results);
-            })
-        })
-} */
+function log(account, file, msg) {
+    msg = account + ":" + msg
+    console.log(msg);
+    msg += '\n';
+    fs.appendFile(file, msg, () => { });
+}
 
 function validate(account, snapshotBalance, snapshotPublicKey, callback) {
-    //let vaild = true;
     snapshotBalance = snapshotBalance.toString().split(" ")[0];
-    let random = Math.floor(Math.random() * 4);
+    let random = Math.floor(Math.random() * httpEndPoints.length);
     let httpEndPoint = httpEndPoints[random];
     superagent(httpEndPoint + ":" + port + "/v1/chain/get_currency_balance")
         .set('Content-Type', 'application/json')
@@ -110,13 +69,12 @@ function validate(account, snapshotBalance, snapshotPublicKey, callback) {
         })
         .end(function (err, res) {
             if (err) {
-                console.error("http error :" + err);
-                //retry(account, snapshotBalance, snapshotPublicKey);
+                let msg = httpEndPoint + " , http error :" + err;
+                log(account, "bad", msg);
             } else if (res.statusCode != 200) {
-                console.error("status code :" + res.statusCode);
-                //retry(account, snapshotBalance, snapshotPublicKey);
+                let msg = httpEndPoint + " status code :" + res.statusCode
+                log(account, "bad", msg);
             } else {
-                //console.log(res.text);
                 let balance = 0;
                 let balanceArr = JSON.parse(res.text);
                 if (balanceArr.length != 0) {
@@ -129,11 +87,11 @@ function validate(account, snapshotBalance, snapshotPublicKey, callback) {
                     })
                     .end(function (err, res) {
                         if (err) {
-                            console.error("http error :" + err);
-                            //retry(account, snapshotBalance, snapshotPublicKey);
+                            let msg = httpEndPoint + " , http error :" + err;
+                            log(account, "bad", msg);
                         } else if (res.statusCode != 200) {
-                            console.error("status code :" + res.statusCode);
-                            //retry(account, snapshotBalance, snapshotPublicKey);
+                            let msg = httpEndPoint + " status code :" + res.statusCode
+                            log(account, "bad", msg);
                         } else {
                             let object = JSON.parse(res.text);
                             let stake_cpu = 1 * object.total_resources.cpu_weight.toString().split(" ")[0];;
@@ -145,35 +103,25 @@ function validate(account, snapshotBalance, snapshotPublicKey, callback) {
 
                             if (owner_key != snapshotPublicKey || active_key != snapshotPublicKey) {
                                 let msg = "snapshotPublicKey error,snapshot:" + snapshotPublicKey + ",owner:" + owner_key + ",active:" + active_key;
-                                console.error(msg);
-                                msg += '\n';
-                                fs.appendFile("bad", msg, () => { });
+                                log(account, "bad", msg);
                             } else if (ram_bytes > 8192) {
                                 let msg = "ram error,ram:" + ram_bytes;
-                                console.error(msg);
-                                msg += '\n';
-                                fs.appendFile("bad", msg, () => { });
+                                log(account, "bad", msg);
                             } else if (total != snapshotBalance) {
                                 let msg = "balance error,snapshot:" + snapshotBalance + " , total:" + total + ",balance:" + balance + ",stake_cpu:" + stake_cpu + ",stake_net:" + stake_net;
-                                console.error(msg);
-                                msg += '\n';
-                                fs.appendFile("bad", msg, () => { });
-                            } else if (balance > 10){
+                                log(account, "bad", msg);
+                            } else if (balance > 10) {
                                 let msg = "balance error, > 10 EOS";
-                                console.error(msg);
-                                msg += '\n';
-                                fs.appendFile("bad", msg, () => { });
-                            }else {
-                                let msg = account + ":ok.";
-                                console.log(msg);
-                                msg += '\n';
-                                fs.appendFile("good", msg, () => { });
+                                log(account, "bad", msg);
+                            } else {
+                                let msg = "ok.";
+                                log(account, "good", msg);
                             }
-                            callback(null, null);
                         }
                     }
                     )
             }
+            callback(null, null);
         });
 
 }
